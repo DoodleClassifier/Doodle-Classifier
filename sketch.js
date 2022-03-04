@@ -3,6 +3,8 @@ const total_data = 1000;
 const canvas_width = 400;
 const canvas_height = 400;
 
+var fs = require('fs');
+
 const objects = new Map([
   [0, "Broom"],
   [1, "Door"],
@@ -152,6 +154,9 @@ function guess() {
     return 0;
   });
 
+  // Color the top result black with a span, while other results will be grey
+  guessText[0].string = "<span style='color:black'>" + guessText[0].string + "</span>";
+
   // Create string from guess text
   let guessString = "";
 
@@ -175,7 +180,7 @@ function setup() {
   }
 
   // Make nn object, 784 inputs (one per pixel value), 64 nodes in hidden layer, x outputs for all objects
-  nn = new NeuralNetwork(784, 64, objects.size);
+  nn = new NeuralNetwork(784, 60, objects.size);
 
   // Preparing the data
   let training = [];
@@ -248,3 +253,5 @@ Notes for improvements:
 - cross entropy
 
 */
+
+
