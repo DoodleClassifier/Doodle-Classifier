@@ -3,7 +3,8 @@ const total_data = 1000;
 const canvas_width = 400;
 const canvas_height = 400;
 
-var fs = require('fs');
+// var fs = require('fs'), 
+// const { RandomForestClassifier } = require('random-forest-classifier');
 
 const objects = new Map([
   [0, "Broom"],
@@ -102,12 +103,38 @@ function zeroGuess(){
   let guessDiv = select("#guessDiv");
   let zeroGuess = "";
 
-  for (let key of objects.keys()){
-    zeroGuess += objects.get(key) + ": " + formatDecimal(0) + "%<br>";
+  let guessText = makeGuessStrings(new Array(objects.size).fill(0));
+
+  for (let str of guessText){
+    zeroGuess += str.string;
   }
 
   guessDiv.html(zeroGuess);
 
+}
+
+// Helper function to generate an array of strings, one for each object and the predicted percentage by the model. Takes in guess which is simply an array of the predicted percentages.
+function makeGuessStrings(guess){
+  guessText = [];
+  
+  // Generate strings and associate them with the guess values
+  for (let key of objects.keys()) {
+    guessText.push({});
+    guessText[key].string = objects.get(key) + "<span style='float:right;'>" + formatDecimal(guess[key] * 100) + "%</span><br>";
+    guessText[key].value = guess[key];
+  }
+
+  // Sort guess text array by descending value
+  guessText.sort(function(a, b) {
+    if (a.value < b.value){
+      return 1;
+    } else if (a.value > b.value) {
+      return -1;
+    }
+    return 0;
+  });
+
+  return guessText;
 }
 
 function guess() {
@@ -124,35 +151,12 @@ function guess() {
 
   let guess = nn.predict(inputs);
   let m = max(guess);
-  let classification = guess.indexOf(m);
-
-  // for (let key of objects.keys()) {
-  //   if (classification === key) {
-  //     break;
-  //   }
-  // }
+  // let classification = guess.indexOf(m);
 
   let guessDiv = select("#guessDiv");
 
   // Format text
-  let guessText = [];
-
-  // Generate strings and associate them with the guess values
-  for (let key of objects.keys()) {
-    guessText.push({});
-    guessText[key].string = objects.get(key) + ": " + formatDecimal(guess[key] * 100) + "%<br>";
-    guessText[key].value = guess[key];
-  }
-
-  // Sort guess text array by descending value
-  guessText.sort(function(a, b) {
-    if (a.value < b.value){
-      return 1;
-    } else if (a.value > b.value) {
-      return -1;
-    }
-    return 0;
-  });
+  let guessText = makeGuessStrings(guess);
 
   // Color the top result black with a span, while other results will be grey
   guessText[0].string = "<span style='color:black'>" + guessText[0].string + "</span>";
@@ -160,8 +164,8 @@ function guess() {
   // Create string from guess text
   let guessString = "";
 
-  for (let x of guessText){
-    guessString += x.string;
+  for (let str of guessText){
+    guessString += str.string;
   }
 
   guessDiv.html(guessString);
@@ -180,7 +184,9 @@ function setup() {
   }
 
   // Make nn object, 784 inputs (one per pixel value), 64 nodes in hidden layer, x outputs for all objects
+  
   nn = new NeuralNetwork(784, 60, objects.size);
+    // nn = RandomForestClassifier(200);
 
   // Preparing the data
   let training = [];
@@ -206,15 +212,9 @@ function setup() {
     let percent = testAll(testing);
     console.log("Percent: " + formatDecimal(percent) + "%");
   });
-
-  // let guessButton = select('#guess');
-  // guessButton.mousePressed(function() {
-  //   guess();
-  // });  
   
   // Logic for "guess when drawing on canvas"
   let mouseDown = false;
-  canvas.addevent
   canvas.mousePressed(function(){
     mouseDown = true;
   });
